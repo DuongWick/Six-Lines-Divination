@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gieo quẻ Kinh Dịch</title>
+<style>
+:root{--bg:#faf8f3;--card:#fff;--fg:#2b2b2b;--mu:#7a746a;--ac:#8a2b1f;--bd:#e4ded2}
+@media(prefers-color-scheme:dark){:root{--bg:#171614;--card:#222120;--fg:#ece8df;--mu:#9c968a;--ac:#e08b7a;--bd:#38352f}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;padding:16px;max-width:920px;margin:auto}
+h1{font-size:1.3rem;text-align:center;color:var(--ac)}
+textarea{width:100%;padding:12px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--fg);font:inherit;resize:vertical}
+button{width:100%;margin-top:10px;padding:13px;border:0;border-radius:10px;background:var(--ac);color:#fff;font:600 1rem system-ui;cursor:pointer}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-top:14px}
+.info{font-size:.92rem;color:var(--mu)}.info b{color:var(--fg)}
+.grid{display:grid;gap:14px}@media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}}
+.card h2{margin:0;text-align:center;font-size:1.05rem}.card .tr,.card .ho{text-align:center}
+.ho{color:var(--mu);font-size:.9rem}.tr{font-weight:700;color:var(--ac);margin-top:6px}
+.qua{margin:12px 0}.bar{display:flex;width:190px;height:9px;margin:8px auto;position:relative}
+.bar.dut{gap:20px}.bar i{flex:1;background:var(--fg)}.bar b{position:absolute;right:-30px;top:-8px;font-size:.9rem;color:var(--ac)}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.88rem;white-space:nowrap}
+th,td{padding:4px 6px;text-align:left;border-bottom:1px solid var(--bd)}th{color:var(--mu);font-weight:600}
+td.k{color:var(--ac);font-weight:700}details{margin-top:12px;font-size:.88rem;color:var(--mu)}
+</style></head><body>
+<h1>Gieo quẻ Kinh Dịch</h1>
+<textarea id="vb" rows="2" placeholder="Nhập việc muốn hỏi..."></textarea>
+<button id="go">Gieo quẻ</button>
+<div id="out"></div>
+<script>
+const DATA={"QUE_DON":{"1,1,1":"Càn","1,1,0":"Đoài","1,0,1":"Ly","1,0,0":"Chấn","0,1,1":"Tốn","0,1,0":"Khảm","0,0,1":"Cấn","0,0,0":"Khôn"},"TEN_QUE":{"Càn|Càn":"Bát Thuần Càn","Càn|Chấn":"Thiên Lôi Vô Vọng","Càn|Khảm":"Thiên Thủy Tụng","Càn|Cấn":"Thiên Sơn Độn","Càn|Khôn":"Thiên Địa Bĩ","Càn|Tốn":"Thiên Phong Cấu","Càn|Ly":"Thiên Hỏa Đồng Nhân","Càn|Đoài":"Thiên Trạch Lý","Chấn|Càn":"Lôi Thiên Đại Tráng","Chấn|Chấn":"Bát Thuần Chấn","Chấn|Khảm":"Lôi Thủy Giải","Chấn|Cấn":"Lôi Sơn Tiểu Quá","Chấn|Khôn":"Lôi Địa Dự","Chấn|Tốn":"Lôi Phong Hằng","Chấn|Ly":"Lôi Hỏa Phong","Chấn|Đoài":"Lôi Trạch Quy Muội","Khảm|Càn":"Thủy Thiên Nhu","Khảm|Chấn":"Thủy Lôi Truân","Khảm|Khảm":"Bát Thuần Khảm","Khảm|Cấn":"Thủy Sơn Kiển","Khảm|Khôn":"Thủy Địa Tỷ","Khảm|Tốn":"Thủy Phong Tỉnh","Khảm|Ly":"Thủy Hỏa Ký Tế","Khảm|Đoài":"Thủy Trạch Tiết","Cấn|Càn":"Sơn Thiên Đại Súc","Cấn|Chấn":"Sơn Lôi Di","Cấn|Khảm":"Sơn Thủy Mông","Cấn|Cấn":"Bát Thuần Cấn","Cấn|Khôn":"Sơn Địa Bác","Cấn|Tốn":"Sơn Phong Cổ","Cấn|Ly":"Sơn Hỏa Bí","Cấn|Đoài":"Sơn Trạch Tổn","Khôn|Càn":"Địa Thiên Thái","Khôn|Chấn":"Địa Lôi Phục","Khôn|Khảm":"Địa Thủy Sư","Khôn|Cấn":"Địa Sơn Khiêm","Khôn|Khôn":"Bát Thuần Khôn","Khôn|Tốn":"Địa Phong Thăng","Khôn|Ly":"Địa Hỏa Minh Di","Khôn|Đoài":"Địa Trạch Lâm","Tốn|Càn":"Phong Thiên Tiểu Súc","Tốn|Chấn":"Phong Lôi Ích","Tốn|Khảm":"Phong Thủy Hoán","Tốn|Cấn":"Phong Sơn Tiệm","Tốn|Khôn":"Phong Địa Quán","Tốn|Tốn":"Bát Thuần Tốn","Tốn|Ly":"Phong Hỏa Gia Nhân","Tốn|Đoài":"Phong Trạch Trung Phu","Ly|Càn":"Hỏa Thiên Đại Hữu","Ly|Chấn":"Hỏa Lôi Phệ Hạp","Ly|Khảm":"Hỏa Thủy Vị Tế","Ly|Cấn":"Hỏa Sơn Lữ","Ly|Khôn":"Hỏa Địa Tấn","Ly|Tốn":"Hỏa Phong Đỉnh","Ly|Ly":"Bát Thuần Ly","Ly|Đoài":"Hỏa Trạch Khuê","Đoài|Càn":"Trạch Thiên Quải","Đoài|Chấn":"Trạch Lôi Tùy","Đoài|Khảm":"Trạch Thủy Khốn","Đoài|Cấn":"Trạch Sơn Hàm","Đoài|Khôn":"Trạch Địa Tụy","Đoài|Tốn":"Trạch Phong Đại Quá","Đoài|Ly":"Trạch Hỏa Cách","Đoài|Đoài":"Bát Thuần Đoài"},"TRIEU":{"Bát Thuần Càn":"Khốn Long Đắc Thủy","Bát Thuần Khôn":"Ngạ Hổ Đắc Thực","Thủy Lôi Truân":"Loạn Ti Vô Đầu","Sơn Thủy Mông":"Tiểu Quỷ Thâu Tiền","Thủy Thiên Nhu":"Minh Châu Xuất Thổ","Thiên Thủy Tụng":"Nhị Nhân Tranh Lộ","Địa Thủy Sư":"Mã Đáo Thành Công","Thủy Địa Tỷ":"Thuận Phong Hành Thuyền","Phong Thiên Tiểu Súc":"Mật Vân Bất Vũ","Thiên Trạch Lý":"Phượng Minh Kỳ Sơn","Địa Thiên Thái":"Hỷ Báo Tam Nguyên","Thiên Địa Bĩ":"Hổ Lạc Hãm Khanh","Thiên Hỏa Đồng Nhân":"Tiên Nhân Chỉ Lộ","Hỏa Thiên Đại Hữu":"Nhuyễn Mộc Nô Tước","Địa Sơn Khiêm":"Nhị Nhân Phân Kim","Lôi Địa Dự":"Thanh Long Đắc Vị","Trạch Lôi Tùy":"Bộ Bộ Đăng Cao","Sơn Phong Cổ":"Thôi Ma Phần Đạo","Địa Trạch Lâm":"Phát Chánh Thi Nhân","Phong Địa Quán":"Hạn Bồng Phùng Hà","Hỏa Lôi Phệ Hạp":"Cô Nhân Ngộ Thực","Sơn Hỏa Bí":"Hỷ Khí Doanh Môn","Sơn Địa Bác":"Ưng Thước Đồng Lâm","Địa Lôi Phục":"Phu Thê Phản Mục","Thiên Lôi Vô Vọng":"Điểu Bị Lao Lung","Sơn Thiên Đại Súc":"Trận Thế Đắc Khai","Sơn Lôi Di":"Vị Thủy Phỏng Hiền","Trạch Phong Đại Quá":"Dạ Mộng Kim Ngân","Bát Thuần Khảm":"Thủy Để Lao Nguyệt","Bát Thuần Ly":"Thiên Quan Tứ Phước","Trạch Sơn Hàm":"Manh Nha Xuất Thổ","Lôi Phong Hằng":"Ngư Lai Tràng Võng","Thiên Sơn Độn":"Nùng Vân Tế Nhật","Lôi Thiên Đại Tráng":"Công Sư Đắc Mộc","Hỏa Địa Tấn":"Sừ Địa Đắc Kim","Địa Hỏa Minh Di":"Quá Giang Chiết Kiều","Phong Hỏa Gia Nhân":"Cảnh Lý Quan Hoa","Hỏa Trạch Khuê":"Phản Mại Trư Dương","Thủy Sơn Kiển":"Vũ Tuyết Tải Đồ","Lôi Thủy Giải":"Ngũ Quan Thoát Nạn","Sơn Trạch Tổn":"Thôi Xa Phí Lực","Phong Lôi Ích":"Khô Mộc Khai Hoa","Trạch Thiên Quải":"Du Phong Thoát Võng","Thiên Phong Cấu":"Tha Hương Ngộ Hữu","Trạch Địa Tụy":"Ngư Lý Hóa Long","Địa Phong Thăng":"Chỉ Nhật Cao Thăng","Trạch Thủy Khốn":"Thoát Lãng Trừu Đê","Thủy Phong Tỉnh":"Khô Tỉnh Sinh Tuyền","Trạch Hỏa Cách":"Hạn Miêu Đắc Vũ","Hỏa Phong Đỉnh":"Ngư Ông Đắc Lợi","Bát Thuần Chấn":"Kim Chung Dạ Tràng","Bát Thuần Cấn":"Nhân Đoản Táo Cao","Phong Sơn Tiệm":"Tuấn Mã Xuất Lung","Lôi Trạch Quy Muội":"Duyên Mộc Cầu Ngư","Lôi Hỏa Phong":"Cổ Kính Trùng Minh","Hỏa Sơn Lữ":"Túc Điểu Phần Sào","Bát Thuần Tốn":"Châu Đắc Thuận Phong","Bát Thuần Đoài":"Chẩn Thủy Hòa Nê","Phong Thủy Hoán":"Cách Hà Vọng Kim","Thủy Trạch Tiết":"Trảm Tướng Phong Thần","Phong Trạch Trung Phu":"Hành Tẩu Bạc Băng","Lôi Sơn Tiểu Quá":"Cấp Quá Độc Kiều","Thủy Hỏa Ký Tế":"Kim Bảng Đề Danh","Hỏa Thủy Vị Tế":"Thái Tuế Nguyệt Kiến"},"DIA_CHI_QUAI":{"Càn":[["Tý","Dần","Thìn"],["Ngọ","Thân","Tuất"]],"Tốn":[["Sửu","Hợi","Dậu"],["Mùi","Tỵ","Mão"]],"Chấn":[["Tý","Dần","Thìn"],["Ngọ","Thân","Tuất"]],"Ly":[["Mão","Sửu","Hợi"],["Dậu","Mùi","Tỵ"]],"Khảm":[["Dần","Thìn","Ngọ"],["Thân","Tuất","Tý"]],"Cấn":[["Thìn","Ngọ","Thân"],["Tuất","Tý","Dần"]],"Khôn":[["Mùi","Tỵ","Mão"],["Sửu","Hợi","Dậu"]],"Đoài":[["Tỵ","Mão","Sửu"],["Hợi","Dậu","Mùi"]]},"NGU_HANH_CHI":{"Tý":"Thủy","Hợi":"Thủy","Dần":"Mộc","Mão":"Mộc","Tỵ":"Hỏa","Ngọ":"Hỏa","Thìn":"Thổ","Tuất":"Thổ","Sửu":"Thổ","Mùi":"Thổ","Thân":"Kim","Dậu":"Kim"},"NGU_HANH_QUAI":{"Chấn":"Mộc","Tốn":"Mộc","Càn":"Kim","Đoài":"Kim","Khảm":"Thủy","Ly":"Hỏa","Cấn":"Thổ","Khôn":"Thổ"},"SINH":{"Kim":"Thủy","Thủy":"Mộc","Mộc":"Hỏa","Hỏa":"Thổ","Thổ":"Kim"},"KHAC":{"Kim":"Mộc","Mộc":"Thổ","Thổ":"Thủy","Thủy":"Hỏa","Hỏa":"Kim"},"CAN":["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"],"CHI":["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"],"LUC_THU":["Thanh Long","Chu Tước","Câu Trần","Đằng Xà","Bạch Hổ","Huyền Vũ"],"LUC_THU_HAO_1":{"0":0,"1":0,"2":1,"3":1,"4":2,"5":3,"6":4,"7":4,"8":5,"9":5}};
+const D=DATA,rad=Math.PI/180,mod=(a,n)=>((a%n)+n)%n,tr=Math.trunc;
+const jdOf=(d,m,y)=>{const a=tr((14-m)/12),Y=y+4800-a,M=m+12*a-3;let j=d+tr((153*M+2)/5)+365*Y+tr(Y/4)-tr(Y/100)+tr(Y/400)-32045;if(j<2299161)j=d+tr((153*M+2)/5)+365*Y+tr(Y/4)-32083;return j};
+function newMoon(k,tz){const T=k/1236.85,T2=T*T,T3=T2*T,s=x=>Math.sin(x*rad);
+const J=2415020.75933+29.53058868*k+0.0001178*T2-0.000000155*T3+0.00033*s(166.56+132.87*T-0.009173*T2);
+const M=359.2242+29.10535608*k-0.0000333*T2-0.00000347*T3,P=306.0253+385.81691806*k+0.0107306*T2+0.00001236*T3,F=21.2964+390.67050646*k-0.0016528*T2-0.00000239*T3;
+const C=(0.1734-0.000393*T)*s(M)+0.0021*s(2*M)-0.4068*s(P)+0.0161*s(2*P)-0.0004*s(3*P)+0.0104*s(2*F)-0.0051*s(M+P)-0.0074*s(M-P)+0.0004*s(2*F+M)-0.0004*s(2*F-M)-0.0006*s(2*F+P)+0.0010*s(2*F-P)+0.0005*s(2*P+M);
+const dt=T<-11?0.001+0.000839*T+0.0002261*T2-0.00000845*T3-0.000000081*T*T3:-0.000278+0.000265*T+0.000262*T2;
+return tr(J+C-dt+0.5+tz/24)}
+function sunLong(j,tz){const T=(j-2451545.5-tz/24)/36525,T2=T*T,M=357.52910+35999.05030*T-0.0001559*T2-0.00000048*T*T2,L0=280.46645+36000.76983*T+0.0003032*T2;
+const DL=(1.914600-0.004817*T-0.000014*T2)*Math.sin(rad*M)+(0.019993-0.000101*T)*Math.sin(rad*2*M)+0.000290*Math.sin(rad*3*M);
+let L=(L0+DL)*rad;L-=2*Math.PI*tr(L/(2*Math.PI));return tr(L/Math.PI*6)}
+function month11(y,tz){const k=tr((jdOf(31,12,y)-2415021)/29.530588853);let nm=newMoon(k,tz);if(sunLong(nm,tz)>=9)nm=newMoon(k-1,tz);return nm}
+function leapOff(a11,tz){const k=tr((a11-2415021.076998695)/29.530588853+0.5);let i=1,arc=sunLong(newMoon(k+i,tz),tz),last;do{last=arc;i++;arc=sunLong(newMoon(k+i,tz),tz)}while(arc!=last&&i<14);return i-1}
+function solar2lunar(dd,mm,yy,tz=7){const dn=jdOf(dd,mm,yy),k=tr((dn-2415021.076998695)/29.530588853);let ms=newMoon(k+1,tz);if(ms>dn)ms=newMoon(k,tz);
+let a11=month11(yy,tz),b11=a11,ly;if(a11>=ms){ly=yy;a11=month11(yy-1,tz)}else{ly=yy+1;b11=month11(yy+1,tz)}
+const day=dn-ms+1,diff=tr((ms-a11)/29);let leap=false,lm=diff+11;
+if(b11-a11>365){const lo=leapOff(a11,tz);if(diff>=lo){lm=diff+10;if(diff==lo)leap=true}}
+if(lm>12)lm-=12;if(lm>=11&&diff<4)ly-=1;return[day,lm,ly,leap]}
+const lucThuOf=c=>{const b=D.LUC_THU_HAO_1[c];return[0,1,2,3,4,5].map(i=>D.LUC_THU[(b+i)%6])};
+const khongVong=(c,z)=>{const q=(z+9-c)%12;return[D.CHI[(q+1)%12],D.CHI[(q+2)%12]]};
+function thongTin(t){const d=t.getDate(),m=t.getMonth()+1,y=t.getFullYear(),[nd,nm,ny,nh]=solar2lunar(d,m,y),jd=jdOf(d,m,y),cn=(jd+9)%10,zn=(jd+1)%12,
+cy=(ny+6)%10,zy=(ny+8)%12,zm=(nm+1)%12,cm=(ny*12+nm+3)%10,zg=((t.getHours()+1)>>1)%12,cg=((cn%5)*2+zg)%10,cc=(a,b)=>D.CAN[a]+" "+D.CHI[b];
+return{ngay:cc(cn,zn),thang:cc(cm,zm)+(nh?" (nhuận)":""),nam:cc(cy,zy),gio:cc(cg,zg),am_lich:`${nd}/${nm}${nh?" nhuận":""}/${ny}`,khong_vong:khongVong(cn,zn),luc_thu:lucThuOf(cn)}}
+const quaiOf=b=>D.QUE_DON[b.join(",")],tenQue=h=>D.TEN_QUE[quaiOf(h.slice(3))+"|"+quaiOf(h.slice(0,3))];
+function timTheUng(hao){const h=hao.slice(),eq=()=>h[0]==h[3]&&h[1]==h[4]&&h[2]==h[5];if(eq())return[6,3,"Bát Thuần",quaiOf(h.slice(0,3))];
+const st=[[[1],1,"Nhất Thế"],[[2],2,"Nhị Thế"],[[3],3,"Tam Thế"],[[4],4,"Tứ Thế"],[[5],5,"Ngũ Thế"],[[4],4,"Du Hồn"],[[1,2,3],3,"Quy Hồn"]];
+for(const[ds,the,loai]of st){ds.forEach(v=>h[v-1]^=1);if(eq())return[the,the<=3?the+3:the-3,loai,quaiOf(h.slice(0,3))]}}
+const anChi=h=>D.DIA_CHI_QUAI[quaiOf(h.slice(0,3))][0].concat(D.DIA_CHI_QUAI[quaiOf(h.slice(3))][1]);
+function lucThan(bt,chi){const g=D.NGU_HANH_CHI[chi];if(g==bt)return"Huynh Đệ";if(D.SINH[bt]==g)return"Tử Tôn";if(D.KHAC[bt]==g)return"Thê Tài";if(D.SINH[g]==bt)return"Phụ Mẫu";return"Quan Quỷ"}
+const NAM=["Huynh Đệ","Tử Tôn","Thê Tài","Quan Quỷ","Phụ Mẫu"],TT={"Huynh Đệ":"Huynh","Tử Tôn":"Tử","Thê Tài":"Tài","Quan Quỷ":"Quan","Phụ Mẫu":"Phụ"};
+function timPhucThan(h,bt,thuan){const co=new Set(anChi(h).map(c=>lucThan(bt,c))),kq={};const bits=Object.keys(D.QUE_DON).find(k=>D.QUE_DON[k]==thuan).split(",").map(Number),ct=anChi(bits.concat(bits));
+for(const ls of NAM.filter(x=>!co.has(x)))for(let i=1;i<=6;i++)if(lucThan(bt,ct[i-1])==ls){kq[i]=TT[ls]+"-"+ct[i-1];break}return kq}
+// ---- giao diện ----
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const bar=(v,d)=>`<div class="bar${v?"":" dut"}"><i></i><i></i>${d?`<b>${v?"○":"×"}</b>`:""}</div>`;
+function bang(head,rows){return`<div class="tw"><table><tr>${head.map(x=>`<th>${x}</th>`).join("")}</tr>${rows.map(r=>`<tr>${r.map((c,i)=>`<td${head[i]=="TK"&&c?' class="k"':""}>${c}</td>`).join("")}</tr>`).join("")}</table></div>`}
+function card(h,dong,bt,kv,chu,lt){const ten=tenQue(h),[the,ung,loai,cung]=timTheUng(h),chi=anChi(h),pt=chu?timPhucThan(h,bt,cung):{},rows=[];
+for(let i=6;i>=1;i--){const c=chi[i-1],base=[lucThan(bt,c),c+"-"+D.NGU_HANH_CHI[c]],tk=kv.includes(c)?"K":"";
+rows.push(chu?[i==the?"Thế":i==ung?"Ứng":"",...base,pt[i]||"",tk,...(lt?[lt[i-1]]:[])]:[...base,tk,lt[i-1]])}
+const head=chu?["T/Ư","Lục Thân","Can Chi","Phục thần","TK",...(lt?["Lục Thú"]:[])]:["Lục Thân","Can Chi","TK","Lục Thú"];
+const ho="HỌ "+cung.toUpperCase()+(loai=="Du Hồn"||loai=="Quy Hồn"?` (${loai.toUpperCase()})`:"");
+let bars="";for(let i=6;i>=1;i--)bars+=bar(h[i-1],dong&&dong[i-1]);
+return`<div class="card"><h2>${ten.toUpperCase()}</h2><div class="qua">${bars}</div>${bang(head,rows)}<div class="ho" style="margin-top:10px">${ho}</div><div class="tr">${D.TRIEU[ten].toUpperCase()}</div></div>`}
+function gieo(vb){const t=new Date(),L=thongTin(t),ds=[];
+for(let i=0;i<6;i++){const m=[0,1,2].map(()=>Math.random()<.5?"dương":"âm"),n=m.filter(x=>x=="dương").length;ds.push({m,r:n==3?"dương động":n==0?"âm động":n>1?"âm":"dương"})}
+const h=ds.map(x=>x.r.startsWith("dương")?1:0),dong=ds.map(x=>x.r.endsWith("động")),hb=h.map((v,i)=>dong[i]?v^1:v),bt=D.NGU_HANH_QUAI[timTheUng(h)[3]],kv=L.khong_vong,lt=L.luc_thu;
+const p=n=>String(n).padStart(2,"0"),dl=`${p(t.getHours())}:${p(t.getMinutes())}, ${p(t.getDate())}/${p(t.getMonth()+1)}/${t.getFullYear()}`;
+const cards=dong.some(Boolean)?`<div class="grid two">${card(h,dong,bt,kv,true)}${card(hb,null,bt,kv,false,lt)}</div>`:`${card(h,dong,bt,kv,true,lt)}<p class="info" style="text-align:center">(Không có hào động)</p>`;
+const ct=ds.map((x,i)=>`Lần gieo thứ ${i+1}: ${x.m.join(", ")} → ${x.r}`).reverse().join("<br>");
+return`<div class="card info">Dương lịch: <b>${dl}</b> &nbsp;|&nbsp; Âm lịch: <b>${L.am_lich}</b><br>Giờ <b>${L.gio}</b>, ngày <b>${L.ngay}</b>, tháng <b>${L.thang}</b>, năm <b>${L.nam}</b><br>Việc hỏi: <b>${esc(vb)}</b></div>${cards}<details><summary>Chi tiết các lần gieo</summary>${ct}</details>`}
+if(typeof document!=="undefined")document.getElementById("go").onclick=()=>{const v=document.getElementById("vb").value.trim();if(!v){document.getElementById("vb").focus();return}document.getElementById("out").innerHTML=gieo(v)};
+if(typeof module!=="undefined")module.exports={thongTin,timTheUng,tenQue,anChi,lucThan,timPhucThan};
+</script></body></html>
