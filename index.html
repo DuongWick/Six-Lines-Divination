@@ -27,7 +27,7 @@ button.sec{background:transparent;color:var(--ac);border:1.5px solid var(--ac)}
 footer{text-align:center;color:var(--mu);font-size:.9rem;margin:28px 0 8px;padding-top:14px;border-top:1px solid var(--bd)}
 </style></head><body>
 <h1>Gieo quẻ Kinh Dịch</h1>
-<p class="lead">Nghĩ thật kĩ về câu hỏi của mình trước, sau đó nhập điều muốn hỏi rồi bấm gieo quẻ</p>
+<p class="lead">Nghĩ thật kĩ về câu hỏi của mình trước, sau đó nhập điều muốn hỏi rồi bấm gieo quẻ. Liên hệ Zl ở phía dưới để yêu cầu luận giải</p>
 <textarea id="vb" rows="2" placeholder="Nhập việc muốn hỏi..."></textarea>
 <button id="go">Gieo quẻ</button>
 <div id="out"></div>
@@ -52,4 +52,65 @@ let a11=month11(yy,tz),b11=a11,ly;if(a11>=ms){ly=yy;a11=month11(yy-1,tz)}else{ly
 const day=dn-ms+1,diff=tr((ms-a11)/29);let leap=false,lm=diff+11;
 if(b11-a11>365){const lo=leapOff(a11,tz);if(diff>=lo){lm=diff+10;if(diff==lo)leap=true}}
 if(lm>12)lm-=12;if(lm>=11&&diff<4)ly-=1;return[day,lm,ly,leap]}
-const lucThuOf=c=>{const b=D.LUC_THU_HAO_1[c];return[0,1,2,3,4,5].map(i=>D.LUC_THU[(b+i)%6]
+const lucThuOf=c=>{const b=D.LUC_THU_HAO_1[c];return[0,1,2,3,4,5].map(i=>D.LUC_THU[(b+i)%6])};
+const khongVong=(c,z)=>{const q=(z+9-c)%12;return[D.CHI[(q+1)%12],D.CHI[(q+2)%12]]};
+function thongTin(t){const d=t.getDate(),m=t.getMonth()+1,y=t.getFullYear(),[nd,nm,ny,nh]=solar2lunar(d,m,y),jd=jdOf(d,m,y),cn=(jd+9)%10,zn=(jd+1)%12,
+cy=(ny+6)%10,zy=(ny+8)%12,zm=(nm+1)%12,cm=(ny*12+nm+3)%10,zg=((t.getHours()+1)>>1)%12,cg=((cn%5)*2+zg)%10,cc=(a,b)=>D.CAN[a]+" "+D.CHI[b];
+return{ngay:cc(cn,zn),thang:cc(cm,zm)+(nh?" (nhuận)":""),nam:cc(cy,zy),gio:cc(cg,zg),am_lich:`${nd}/${nm}${nh?" nhuận":""}/${ny}`,khong_vong:khongVong(cn,zn),luc_thu:lucThuOf(cn)}}
+const quaiOf=b=>D.QUE_DON[b.join(",")],tenQue=h=>D.TEN_QUE[quaiOf(h.slice(3))+"|"+quaiOf(h.slice(0,3))];
+function timTheUng(hao){const h=hao.slice(),eq=()=>h[0]==h[3]&&h[1]==h[4]&&h[2]==h[5];if(eq())return[6,3,"Bát Thuần",quaiOf(h.slice(0,3))];
+const st=[[[1],1,"Nhất Thế"],[[2],2,"Nhị Thế"],[[3],3,"Tam Thế"],[[4],4,"Tứ Thế"],[[5],5,"Ngũ Thế"],[[4],4,"Du Hồn"],[[1,2,3],3,"Quy Hồn"]];
+for(const[ds,the,loai]of st){ds.forEach(v=>h[v-1]^=1);if(eq())return[the,the<=3?the+3:the-3,loai,quaiOf(h.slice(0,3))]}}
+const anChi=h=>D.DIA_CHI_QUAI[quaiOf(h.slice(0,3))][0].concat(D.DIA_CHI_QUAI[quaiOf(h.slice(3))][1]);
+function lucThan(bt,chi){const g=D.NGU_HANH_CHI[chi];if(g==bt)return"Huynh Đệ";if(D.SINH[bt]==g)return"Tử Tôn";if(D.KHAC[bt]==g)return"Thê Tài";if(D.SINH[g]==bt)return"Phụ Mẫu";return"Quan Quỷ"}
+const NAM=["Huynh Đệ","Tử Tôn","Thê Tài","Quan Quỷ","Phụ Mẫu"],TT={"Huynh Đệ":"Huynh","Tử Tôn":"Tử","Thê Tài":"Tài","Quan Quỷ":"Quan","Phụ Mẫu":"Phụ"};
+function timPhucThan(h,bt,thuan){const co=new Set(anChi(h).map(c=>lucThan(bt,c))),kq={};const bits=Object.keys(D.QUE_DON).find(k=>D.QUE_DON[k]==thuan).split(",").map(Number),ct=anChi(bits.concat(bits));
+for(const ls of NAM.filter(x=>!co.has(x)))for(let i=1;i<=6;i++)if(lucThan(bt,ct[i-1])==ls){kq[i]=TT[ls]+"-"+ct[i-1];break}return kq}
+// ---- giao diện ----
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const bar=(v,d)=>`<div class="bar${v?"":" dut"}"><i></i><i></i>${d?`<b>${v?"○":"×"}</b>`:""}</div>`;
+function cardData(h,dong,bt,kv,chu,lt){const ten=tenQue(h),[the,ung,loai,cung]=timTheUng(h),chi=anChi(h),pt=chu?timPhucThan(h,bt,cung):{},rows=[];
+for(let i=6;i>=1;i--){const c=chi[i-1],base=[lucThan(bt,c),c+"-"+D.NGU_HANH_CHI[c]],tk=kv.includes(c)?"K":"";
+rows.push(chu?[i==the?"Thế":i==ung?"Ứng":"",...base,pt[i]||"",tk,...(lt?[lt[i-1]]:[])]:[...base,tk,lt[i-1]])}
+const head=chu?["T/Ư","Lục Thân","Can Chi","Phục thần","TK",...(lt?["Lục Thú"]:[])]:["Lục Thân","Can Chi","TK","Lục Thú"];
+return{ten,head,rows,h,dong,chu,ho:"HỌ "+cung.toUpperCase()+(loai=="Du Hồn"||loai=="Quy Hồn"?` (${loai.toUpperCase()})`:""),tri:D.TRIEU[ten].toUpperCase()}}
+// base: độ trễ (giây) của hiệu ứng bút highlight; quẻ biến chạy sau quẻ chính nên như "quét" từ hào động sang hào biến
+function cardHtml(c,base){let bars="";for(let i=6;i>=1;i--){const d=c.dong[i-1];bars+=bar(c.h[i-1],d&&c.chu)}
+const tb=c.rows.map((r,k)=>{const d=c.dong[5-k];return`<tr>${r.map((v,j)=>`<td class="${c.head[j]=="TK"&&v?"k ":""}${d?"hl":""}"${d?` style="--dl:${(base+j*.07).toFixed(2)}s"`:""}>${v}</td>`).join("")}</tr>`}).join("");
+return`<div class="card"><h2>${c.ten.toUpperCase()}</h2><div class="qua">${bars}</div><div class="tw"><table><tr>${c.head.map(x=>`<th>${x}</th>`).join("")}</tr>${tb}</table></div><div class="ho" style="margin-top:10px">${c.ho}</div><div class="tr">${c.tri}</div></div>`}
+function gieo(vb){const t=new Date(),L=thongTin(t),ds=[];
+for(let i=0;i<6;i++){const m=[0,1,2].map(()=>Math.random()<.5?"dương":"âm"),n=m.filter(x=>x=="dương").length;ds.push({m,r:n==3?"dương động":n==0?"âm động":n>1?"âm":"dương"})}
+const h=ds.map(x=>x.r.startsWith("dương")?1:0),dong=ds.map(x=>x.r.endsWith("động")),hb=h.map((v,i)=>dong[i]?v^1:v),bt=D.NGU_HANH_QUAI[timTheUng(h)[3]],kv=L.khong_vong,lt=L.luc_thu,any=dong.some(Boolean);
+const p=n=>String(n).padStart(2,"0"),dl=`${p(t.getHours())}:${p(t.getMinutes())}, ${p(t.getDate())}/${p(t.getMonth()+1)}/${t.getFullYear()}`;
+const A=cardData(h,dong,bt,kv,true,any?null:lt),B=any?cardData(hb,dong,bt,kv,false,lt):null;window.__R={vb,dl,L,A,B,ds};
+const cards=any?`<div class="grid two">${cardHtml(A,0)}${cardHtml(B,.6)}</div>`:`${cardHtml(A,0)}<p class="info" style="text-align:center">(Không có hào động)</p>`;
+const ct=ds.map((x,i)=>`Lần gieo thứ ${i+1}: ${x.m.join(", ")} → ${x.r}`).reverse().join("<br>");
+return`<div class="card info">Dương lịch: <b>${dl}</b> &nbsp;|&nbsp; Âm lịch: <b>${L.am_lich}</b><br>Giờ <b>${L.gio}</b>, ngày <b>${L.ngay}</b>, tháng <b>${L.thang}</b>, năm <b>${L.nam}</b><br>Việc hỏi: <b>${esc(vb)}</b></div>${cards}<button id="png" class="sec">Lưu kết quả thành ảnh PNG</button><details><summary>Chi tiết các lần gieo</summary>${ct}</details>`}
+// ---- lưu ảnh PNG (vẽ bằng canvas, không cần thư viện ngoài) ----
+function luuPNG(){const R=window.__R;if(!R)return;const two=!!R.B,S=2,pad=28,cw=two?520:600,gap=two?32:0,W=pad*2+cw*(two?2:1)+gap,HM=1500,
+big=document.createElement("canvas");big.width=W*S;big.height=HM*S;const x=big.getContext("2d");x.scale(S,S);
+const FN='system-ui,"Segoe UI",Roboto,Arial,sans-serif',F=(s,b)=>{x.font=`${b?"700 ":""}${s}px ${FN}`},T=(t,px,py,col,al)=>{x.fillStyle=col;x.textAlign=al||"left";x.fillText(t,px,py)},
+YL="rgba(255,222,0,.85)",AC="#8a2b1f",FG="#2b2b2b",MU="#7a746a",RD="#b3261e",
+wrap=(t,m)=>{const o=[];let l="";for(const w of t.split(" ")){const n=l?l+" "+w:w;if(x.measureText(n).width>m&&l){o.push(l);l=w}else l=n}o.push(l);return o};
+x.fillStyle="#faf8f3";x.fillRect(0,0,W,HM);
+let y=pad+22;F(22,1);T("GIEO QUẺ KINH DỊCH",W/2,y,AC,"center");y+=32;F(15);
+for(const s of[`Dương lịch: ${R.dl}   |   Âm lịch: ${R.L.am_lich}`,`Giờ ${R.L.gio}, ngày ${R.L.ngay}, tháng ${R.L.thang}, năm ${R.L.nam}`,`Việc hỏi: ${R.vb}`])for(const l of wrap(s,W-2*pad)){T(l,W/2,y,FG,"center");y+=22}
+const cs=two?[R.A,R.B]:[R.A],yN=y+30,yB=yN+20,hB=26,yT=yB+6*hB+14,rh=28,yH=yT+7*rh+28,endX=pad+2*cw+gap;
+if(two)for(let r=0;r<6;r++)if(R.A.dong[5-r]){x.fillStyle=YL;   // dải highlight quét từ hào động sang hào biến
+x.fillRect(pad,yT+(r+1)*rh+2,endX-pad,rh-4)}
+cs.forEach((c,k)=>{const left=pad+k*(cw+gap),cx=left+cw/2;F(20,1);T(c.ten.toUpperCase(),cx,yN,AC,"center");
+for(let r=0;r<6;r++){const hao=6-r,v=c.h[hao-1],cy=yB+r*hB+hB/2;x.fillStyle=FG;
+if(v)x.fillRect(cx-95,cy-4,190,8);else{x.fillRect(cx-95,cy-4,85,8);x.fillRect(cx+10,cy-4,85,8)}
+if(c.chu&&c.dong[hao-1]){F(16,1);T(v?"○":"×",cx+112,cy+6,RD,"center")}}
+F(15,1);const ws=c.head.map((hd,j)=>{let m=x.measureText(hd).width;c.rows.forEach(r=>{m=Math.max(m,x.measureText(r[j]).width)});return m+16}),sc=cw/ws.reduce((a,b)=>a+b,0);
+let px=left;c.head.forEach((hd,j)=>{const w=ws[j]*sc;F(15,1);T(hd,px+4,yT+19,MU);
+c.rows.forEach((r,i)=>{const v=r[j],kk=hd=="TK"&&v;F(15,kk);T(v,px+4,yT+(i+1)*rh+19,kk?RD:FG)});px+=w});
+x.fillStyle="#e4ded2";for(let i=0;i<7;i++)x.fillRect(left,yT+i*rh+rh-1,cw,1);
+F(15);T(c.ho,cx,yH,MU,"center");F(18,1);T(c.tri,cx,yH+30,AC,"center")});
+y=yH+72;F(14,1);T("Chi tiết các lần gieo:",pad,y,FG);F(14);
+R.ds.map((d,i)=>`Lần gieo thứ ${i+1}: ${d.m.join(", ")} → ${d.r}`).reverse().forEach(s=>{y+=21;T(s,pad,y,MU)});
+const H=y+pad,fin=document.createElement("canvas");fin.width=W*S;fin.height=H*S;fin.getContext("2d").drawImage(big,0,0,W*S,H*S,0,0,W*S,H*S);
+fin.toBlob(b=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="que-dich-"+R.dl.replace(/[^0-9]/g,"")+".png";document.body.appendChild(a);a.click();a.remove()},"image/png")}
+if(typeof document!=="undefined")document.getElementById("go").onclick=()=>{const v=document.getElementById("vb").value.trim();if(!v){document.getElementById("vb").focus();return}document.getElementById("out").innerHTML=gieo(v);const pg=document.getElementById("png");if(pg)pg.onclick=luuPNG};
+if(typeof module!=="undefined")module.exports={gieo,luuPNG,thongTin,timTheUng,tenQue,anChi,lucThan,timPhucThan};
+</script></body></html>
